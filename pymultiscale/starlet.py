@@ -13,7 +13,7 @@ def bspline_star(x, step):
     C2 = 4./16.
     C3 = 6./16.
     KSize = 4*step+1
-    KS2 = KSize/2
+    KS2 = KSize//2
     kernel = np.zeros((KSize), dtype = np.float32)
     if KSize == 1:
         kernel[0] = 1.0
@@ -34,7 +34,7 @@ def bspline_star(x, step):
     else:
         result = x
         import scipy.ndimage
-        for dim in xrange(ndim):
+        for dim in range(ndim):
             result = scipy.ndimage.filters.convolve1d(result, kernel, axis = dim, mode='reflect', cval = 0.0)
     return result
 
@@ -76,7 +76,7 @@ def starlet_transform(input_image, num_bands = None, gen2 = True):
     im_out = None
     WT = []
 
-    for band in xrange(num_bands):
+    for band in range(num_bands):
         im_out = bspline_star(im_in, step_trou)
         if gen2:  # Gen2 starlet applies smoothing twice
             WT.append(im_in - bspline_star(im_out, step_trou))
@@ -113,7 +113,7 @@ def inverse_starlet_transform(coefs, gen2 = True):
     # Gen1 starlet can be reconstructed simply by summing the coefficients at each scale.
     if not gen2:
         recon_img = np.zeros_like(coefs[0])
-        for i in xrange(len(coefs)):
+        for i in range(len(coefs)):
             recon_img += coefs[i]
 
     # Gen2 starlet requires more careful reconstruction.
@@ -125,7 +125,7 @@ def inverse_starlet_transform(coefs, gen2 = True):
         for i in reversed(range(num_bands)):
             im_temp = bspline_star(recon_img, step_trou)
             recon_img = im_temp + coefs[i]
-            step_trou /= 2
+            step_trou //= 2
 
     return recon_img
 
@@ -173,7 +173,7 @@ def multiscale_vst_stabilize(input_image, num_bands = None):
     im_out = None
     coefs = []
 
-    for band in xrange(num_bands):
+    for band in range(num_bands):
         im_out = bspline_star(im_in, step_trou)
         coefs.append(msvst(im_in, band) - msvst(im_out, band+1))
         im_in = im_out
@@ -197,7 +197,7 @@ def msvst_starlet_transform(input_image, num_bands = None, gen2 = True):
     im_out = None
     WT = []
 
-    for band in xrange(num_bands):
+    for band in range(num_bands):
         im_out = bspline_star(im_in, step_trou)
         if gen2:  # Gen2 starlet applies smoothing twice
             raise NotImplementedError("Gen2 Starlet with MS-VST not yet implemented.")
@@ -285,7 +285,7 @@ class StarletTransform(object):
         assert len(update) == len(coefs)
 
         update_squared_sum = 0.0;
-        for b in xrange(len(coefs)):
+        for b in range(len(coefs)):
             delta = alpha * update[b]
             coefs[b] += delta
             update_squared_sum += np.square(delta).sum()
@@ -301,12 +301,12 @@ class StarletTransform(object):
 
         # Check arguments
         assert len(coefs) == len(numerator) == len(normalization)
-        for b in xrange(len(coefs)):
+        for b in range(len(coefs)):
             coefs[b] = (coefs[b] * numerator[b]) / (normalization[b] + alpha)
         return coefs
 
     def set_coefs(self, coefs, value):
-        for b in xrange(len(coefs)):
+        for b in range(len(coefs)):
             coefs[b].fill(value)
 
     def mean(self, coefs):
@@ -332,7 +332,7 @@ class StarletTransform(object):
         coefficients are performed in-place.
         '''
 
-        for b in xrange(len(coefs)-1):
+        for b in range(len(coefs)-1):
 
             # Skip band?
             if b in skip_bands:
@@ -340,7 +340,7 @@ class StarletTransform(object):
 
             if within_axis != None:
                 num_planes = coefs[b].shape[within_axis]
-                for p in xrange(num_planes):
+                for p in range(num_planes):
                     if within_axis == 0:
                         A = coefs[b][p,:,:]
                     elif within_axis == 1:
@@ -395,3 +395,4 @@ class MsvstStarletTransform(StarletTransform):
 
     def inv(self, coefs):
         return inverse_msvst_starlet_transform(coefs, gen2 = False)
+
